@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 import org.easymock.EasyMock;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -150,8 +151,16 @@ public class UsesMocksProcessorTest extends TestCase {
     ProcessingEnvironment mockEnvironment = EasyMock.createNiceMock(ProcessingEnvironment.class);
     EasyMock.expect(mockEnvironment.getMessager()).andReturn(getMockMessager()).anyTimes();
     EasyMock.expect(mockEnvironment.getFiler()).andReturn(mockFiler).anyTimes();
+    EasyMock.expect(mockEnvironment.getOptions()).andReturn(getMockOptions()).anyTimes();
     EasyMock.replay(mockEnvironment);
     return mockEnvironment;
+  }
+  
+  private Map<String, String> getMockOptions() {
+    Map<String, String> map = new HashMap<String, String>();
+    map.put("bin_dir", ".");
+    map.put("logfile", "logfile");
+    return map;
   }
   
   private ProcessingEnvironment getMockProcessingEnvironment() {
@@ -211,6 +220,10 @@ public class UsesMocksProcessorTest extends TestCase {
     EasyMock.replay(mockEnv);
     return mockEnv;
   }
+  
+  private CtClass getCtClassForClass(Class<?> clazz) throws ClassNotFoundException {
+    return new AndroidMockGenerator().getCtClassForClass(clazz);
+  }
 
   public void testGetClassMocks() {
     List<Class<?>> classesToMock = new ArrayList<Class<?>>();
@@ -260,5 +273,20 @@ public class UsesMocksProcessorTest extends TestCase {
     assertEquals(annotatedElements.size(), classesList.size());
     assertTrue(classesList.contains(Set.class));
     assertTrue(classesList.contains(TestCase.class));
+  }
+  
+  public void testGetFilenameForClass() throws ClassNotFoundException {
+    assertEquals("java/lang/Object.class", getProcessor().getFilenameForClass(
+        getCtClassForClass(Object.class)));
+    assertEquals("com/google/android/testing/mocking/UsesMocksProcessorTest$InnerClass.class",
+        getProcessor().getFilenameForClass(getCtClassForClass(InnerClass.class)));
+  }
+
+  public void testOpenLogFile() {
+    assertNull(getProcessor().openLogFile(null));
+    FileOutputStream logFile = getProcessor().openLogFile("tmpLogFile");
+  }
+
+  class InnerClass {
   }
 }
