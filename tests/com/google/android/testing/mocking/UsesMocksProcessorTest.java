@@ -1,29 +1,27 @@
 /*
- *  Copyright 2010 Google Inc.
+ * Copyright 2010 Google Inc.
  * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  * 
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package com.google.android.testing.mocking;
 
 import javassist.CannotCompileException;
-import javassist.CtClass;
 
 import junit.framework.TestCase;
 
 import org.easymock.EasyMock;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -60,49 +58,49 @@ public class UsesMocksProcessorTest extends TestCase {
     }
     return set;
   }
-  
+
   @SuppressWarnings("unchecked")
   private Element getMockElement(Class<?> clazz) {
     Element mockElement = EasyMock.createNiceMock(Element.class);
-    EasyMock.expect(mockElement.getAnnotationMirrors()).andReturn(
-        getMockAnnotationMirrors(clazz)).anyTimes();
+    EasyMock.expect(mockElement.getAnnotationMirrors()).andReturn(getMockAnnotationMirrors(clazz))
+        .anyTimes();
     EasyMock.replay(mockElement);
     return mockElement;
   }
-  
+
   @SuppressWarnings("unchecked")
   private List getMockAnnotationMirrors(Class<?> clazz) {
     List<AnnotationMirror> mockMirrorList = new ArrayList<AnnotationMirror>();
     AnnotationMirror mockMirror = EasyMock.createNiceMock(AnnotationMirror.class);
     EasyMock.expect(mockMirror.getAnnotationType()).andReturn(getMockAnnotationType()).anyTimes();
-    EasyMock.expect(mockMirror.getElementValues()).andReturn(
-        getMockElementValuesMap(clazz)).anyTimes();
+    EasyMock.expect(mockMirror.getElementValues()).andReturn(getMockElementValuesMap(clazz))
+        .anyTimes();
     EasyMock.replay(mockMirror);
     mockMirrorList.add(mockMirror);
     return mockMirrorList;
   }
-  
+
   @SuppressWarnings("unchecked")
   private Map getMockElementValuesMap(Class<?> clazz) {
     Map mockValuesMap = new HashMap();
     mockValuesMap.put(getMockExecutableElement(), getMockAnnotationValue(clazz));
     return mockValuesMap;
   }
-  
+
   private AnnotationValue getMockAnnotationValue(Class<?> clazz) {
     AnnotationValue mockValue = EasyMock.createMock(AnnotationValue.class);
-    EasyMock.expect(mockValue.getValue()).andReturn(Arrays.asList(
-        new String[] {clazz.getName() + ".class"})).anyTimes();
+    EasyMock.expect(mockValue.getValue()).andReturn(
+        Arrays.asList(new String[] {clazz.getName() + ".class"})).anyTimes();
     EasyMock.replay(mockValue);
     return mockValue;
   }
-  
+
   private ExecutableElement getMockExecutableElement() {
     ExecutableElement mockElement = EasyMock.createNiceMock(ExecutableElement.class);
     EasyMock.replay(mockElement);
     return mockElement;
   }
-  
+
   private DeclaredType getMockAnnotationType() {
     return new DeclaredType() {
       @Override
@@ -144,6 +142,8 @@ public class UsesMocksProcessorTest extends TestCase {
   private UsesMocksProcessor getProcessor(ProcessingEnvironment processingEnv) {
     UsesMocksProcessor processor = new UsesMocksProcessor();
     processor.init(processingEnv);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    processor.logger = new ProcessorLogger(outputStream, processingEnv);
     return processor;
   }
 
@@ -155,24 +155,24 @@ public class UsesMocksProcessorTest extends TestCase {
     EasyMock.replay(mockEnvironment);
     return mockEnvironment;
   }
-  
+
   private Map<String, String> getMockOptions() {
     Map<String, String> map = new HashMap<String, String>();
     map.put("bin_dir", ".");
     map.put("logfile", "logfile");
     return map;
   }
-  
+
   private ProcessingEnvironment getMockProcessingEnvironment() {
     return getMockProcessingEnvironment(getMockFiler());
   }
-  
+
   private Messager getMockMessager() {
     Messager mockMessager = EasyMock.createNiceMock(Messager.class);
     EasyMock.replay(mockMessager);
     return mockMessager;
   }
-  
+
   private Filer getMockFiler() {
     try {
       return getMockFiler(getMockFileObject());
@@ -181,12 +181,12 @@ public class UsesMocksProcessorTest extends TestCase {
       throw new RuntimeException(e);
     }
   }
-  
+
   private Filer getMockFiler(JavaFileObject mockFileObject) {
     Filer mockFiler = EasyMock.createNiceMock(Filer.class);
     try {
-      EasyMock.expect(mockFiler.createClassFile((CharSequence) EasyMock.anyObject())
-          ).andReturn(mockFileObject).anyTimes();
+      EasyMock.expect(mockFiler.createClassFile((CharSequence) EasyMock.anyObject())).andReturn(
+          mockFileObject).anyTimes();
     } catch (IOException e) {
       // Can't happen
       throw new RuntimeException(e);
@@ -220,39 +220,37 @@ public class UsesMocksProcessorTest extends TestCase {
     EasyMock.replay(mockEnv);
     return mockEnv;
   }
-  
-  private CtClass getCtClassForClass(Class<?> clazz) throws ClassNotFoundException {
-    return new AndroidMockGenerator().getCtClassForClass(clazz);
-  }
 
-  public void testGetClassMocks() {
+  public void testGetClassMocks() throws IOException, CannotCompileException {
     List<Class<?>> classesToMock = new ArrayList<Class<?>>();
     classesToMock.add(TestCase.class);
-    List<String> expectedMocks = new ArrayList<String>(Arrays.asList(new String[] {
-        "genmocks." + TestCase.class.getName() + "DelegateInterface",
-        "genmocks." + TestCase.class.getName() + "DelegateSubclass"
-    }));
-    Set<CtClass> mockedClasses = getProcessor().getClassMocks(classesToMock);
-    
+    List<String> expectedMocks =
+        new ArrayList<String>(Arrays.asList(new String[] {
+            "genmocks." + TestCase.class.getName() + "DelegateInterface",
+            "genmocks." + TestCase.class.getName() + "DelegateSubclass"}));
+    Set<GeneratedClassFile> mockedClasses =
+        getProcessor().getClassMocks(classesToMock, true);
+
     assertEquals(2, mockedClasses.size());
-    for (CtClass clazz : mockedClasses) {
-      assertTrue(expectedMocks.contains(clazz.getName()));
-      expectedMocks.remove(clazz.getName());
+    for (GeneratedClassFile clazz : mockedClasses) {
+      assertTrue(expectedMocks.contains(clazz.getClassName()));
+      expectedMocks.remove(clazz.getClassName());
     }
   }
 
   public void testWriteMocks() throws IOException, CannotCompileException {
     List<Class<?>> classesToMock = new ArrayList<Class<?>>();
     classesToMock.add(TestCase.class);
-    Set<CtClass> mockedClassesSet = getProcessor().getClassMocks(classesToMock);
+    Set<GeneratedClassFile> mockedClassesSet =
+        getProcessor().getClassMocks(classesToMock, true);
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    
-    getProcessor(getMockProcessingEnvironment(getMockFiler(
-        getMockFileObject(outputStream)))).writeMocks(mockedClassesSet);
-    
+
+    getProcessor(getMockProcessingEnvironment(getMockFiler(getMockFileObject(outputStream))))
+        .writeMocks(mockedClassesSet);
+
     String output = new String(outputStream.toByteArray());
-    for (CtClass mockClass : mockedClassesSet) {
-      String expected = new String(mockClass.toBytecode());
+    for (GeneratedClassFile mockClass : mockedClassesSet) {
+      String expected = new String(mockClass.getContents());
       assertTrue(output.contains(expected));
       output = output.replace(expected, "");
     }
@@ -260,33 +258,18 @@ public class UsesMocksProcessorTest extends TestCase {
   }
 
   public void testProcess() {
-    assertFalse(getProcessor().process(null, getMockRoundEnvironment(
-        getAnnotatedElementsSet(TestCase.class))));
-    assertFalse(getProcessor().process(null, getMockRoundEnvironment(
-        getAnnotatedElementsSet(TestCase.class), true)));
+    assertFalse(getProcessor().process(null,
+        getMockRoundEnvironment(getAnnotatedElementsSet(TestCase.class))));
+    assertFalse(getProcessor().process(null,
+        getMockRoundEnvironment(getAnnotatedElementsSet(TestCase.class), true)));
   }
 
   public void testFindClassesToMock() {
     Set<? extends Element> annotatedElements = getAnnotatedElementsSet(Set.class, TestCase.class);
     List<Class<?>> classesList = getProcessor().findClassesToMock(annotatedElements);
-    
+
     assertEquals(annotatedElements.size(), classesList.size());
     assertTrue(classesList.contains(Set.class));
     assertTrue(classesList.contains(TestCase.class));
-  }
-  
-  public void testGetFilenameForClass() throws ClassNotFoundException {
-    assertEquals("java/lang/Object.class", getProcessor().getFilenameForClass(
-        getCtClassForClass(Object.class)));
-    assertEquals("com/google/android/testing/mocking/UsesMocksProcessorTest$InnerClass.class",
-        getProcessor().getFilenameForClass(getCtClassForClass(InnerClass.class)));
-  }
-
-  public void testOpenLogFile() {
-    assertNull(getProcessor().openLogFile(null));
-    FileOutputStream logFile = getProcessor().openLogFile("tmpLogFile");
-  }
-
-  class InnerClass {
   }
 }

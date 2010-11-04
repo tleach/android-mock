@@ -2625,18 +2625,20 @@ public class AndroidMock {
     }
   }
 
-  static String getInterfaceNameFor(Class<?> clazz) {
-    return "genmocks." + clazz.getName() + "DelegateInterface";
-  }
-
   @SuppressWarnings("unchecked")
   private static <T, S> T getSubclassFor(Class<? super T> clazz, Class<S> delegateInterface,
       Object realMock, Object... args) {
     Class<T> subclass;
+    String className = null;
     try {
-      subclass = (Class<T>) Class.forName(getSubclassNameFor(clazz));
+      if (isAndroidClass(clazz)) {
+        className = FileUtils.getSubclassNameFor(clazz, SdkVersion.getCurrentVersion());
+      } else {
+        className = FileUtils.getSubclassNameFor(clazz, SdkVersion.UNKNOWN);
+      }
+      subclass = (Class<T>) Class.forName(className);
     } catch (ClassNotFoundException e) {
-      throw new RuntimeException("Could not find class for " + getSubclassNameFor(clazz)
+      throw new RuntimeException("Could not find class for " + className
           + " which likely means that the mock-instrumented jar has not been created or else"
           + " is not being used in the current runtime environment. Try running MockGeneratorMain"
           + " in MockGenerator_deploy.jar or using the output of that execution as the input to"
@@ -2774,18 +2776,29 @@ public class AndroidMock {
         + clazz.getName() + "(" + argTypes + ")");
   }
 
-  static String getSubclassNameFor(Class<?> clazz) {
-    return "genmocks." + clazz.getName() + "DelegateSubclass";
-  }
-
   @SuppressWarnings("unchecked")
   private static <T> Class<T> getInterfaceFor(Class<T> clazz) {
     try {
-      return (Class<T>) Class.forName(getInterfaceNameFor(clazz));
+      String className;
+      if (isAndroidClass(clazz)) {
+        className = FileUtils.getInterfaceNameFor(clazz, SdkVersion.getCurrentVersion());
+      } else {
+        className = FileUtils.getInterfaceNameFor(clazz, SdkVersion.UNKNOWN);
+      }
+      return (Class<T>) Class.forName(className);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException("Could not find mock for " + clazz.getName()
           + "  -- Make sure to run the MockGenerator.jar on your test jar, and to "
           + "build the Android test APK using the modified jar created by MockGenerator", e);
     }
+  }
+
+  static boolean isAndroidClass(Class<?> clazz) {
+    String packageName = clazz.getPackage().getName();
+    return packageName.startsWith("android.") || packageName.startsWith("dalvik.")
+        || packageName.startsWith("java.") || packageName.startsWith("javax.")
+        || packageName.startsWith("org.xml.sax") || packageName.startsWith("org.xmlpull.v1")
+        || packageName.startsWith("org.w3c.dom") || packageName.startsWith("org.apache.http")
+        || packageName.startsWith("junit.");
   }
 }

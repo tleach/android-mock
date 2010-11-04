@@ -1,25 +1,29 @@
 /*
- *  Copyright 2010 Google Inc.
+ * Copyright 2010 Google Inc.
  * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  * 
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package com.google.android.testing.mocking;
 
 import javassist.CannotCompileException;
+import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.NotFoundException;
+
 import junit.framework.TestCase;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -30,8 +34,9 @@ import java.util.Map;
 
 
 /**
- * Various tests that verify that different types of Classes are handled correctly.
- *
+ * Various tests that verify that different types of Classes are handled
+ * correctly.
+ * 
  * @author swoodward@google.com (Stephen Woodward)
  */
 public class ClassTypeTests extends TestCase {
@@ -39,6 +44,15 @@ public class ClassTypeTests extends TestCase {
 
   private AndroidMockGenerator getAndroidMockGenerator() {
     return androidMockGenerator;
+  }
+
+  private void assertAllMethodNames(List<String> expectedNames,
+      Map<String, List<String>> expectedMethods, List<GeneratedClassFile> classes)
+      throws IOException {
+    for (GeneratedClassFile clazz : classes) {
+      assertTrue(expectedNames.contains(clazz.getClassName()));
+      assertUnorderedContentsSame(expectedMethods.get(clazz.getClassName()), getMethodNames(clazz));
+    }
   }
 
   private <T> void assertUnorderedContentsSame(Iterable<T> expected, Iterable<T> actual) {
@@ -68,20 +82,36 @@ public class ClassTypeTests extends TestCase {
         "genmocks." + clazz.getCanonicalName() + "DelegateSubclass"}));
   }
 
-  private List<String> getMethodNames(Method[] methods, String[] exclusions) {
-    List<String> methodNames = new ArrayList<String>();
-    for (Method method : methods) {
-      if (!Arrays.asList(exclusions).contains(method.getName())) {
-        methodNames.add(method.getName());
+  private Iterable<String> getMethodNames(GeneratedClassFile clazz) throws IOException {
+    ByteArrayInputStream classInputStream = new ByteArrayInputStream(clazz.getContents());
+    CtClass ctClass;
+    try {
+      ctClass = ClassPool.getDefault().getCtClass(clazz.getClassName());
+      if (ctClass.isFrozen()) {
+        ctClass.defrost();
       }
+    } catch (NotFoundException e) {
+      // That's ok, we're just defrosting any classes that affect us that were created
+      // by other tests.  NotFoundException implies the class is not frozen.
     }
-    return methodNames;
+    ctClass = ClassPool.getDefault().makeClass(classInputStream);
+    return getMethodNames(ctClass.getDeclaredMethods());
   }
 
   private List<String> getMethodNames(CtMethod[] methods) {
     List<String> methodNames = new ArrayList<String>();
     for (CtMethod method : methods) {
       methodNames.add(method.getName());
+    }
+    return methodNames;
+  }
+
+  private List<String> getMethodNames(Method[] methods, String[] exclusions) {
+    List<String> methodNames = new ArrayList<String>();
+    for (Method method : methods) {
+      if (!Arrays.asList(exclusions).contains(method.getName())) {
+        methodNames.add(method.getName());
+      }
     }
     return methodNames;
   }
@@ -105,9 +135,12 @@ public class ClassTypeTests extends TestCase {
     return expectedMethods;
   }
 
-  public void testClassIsDuplicate() throws ClassNotFoundException {
-    List<CtClass> classList = getAndroidMockGenerator().createMocksForClass(Object.class);
-    List<CtClass> secondClassList = getAndroidMockGenerator().createMocksForClass(Object.class);
+  public void testClassIsDuplicate() throws ClassNotFoundException, IOException,
+      CannotCompileException {
+    List<GeneratedClassFile> classList =
+        getAndroidMockGenerator().createMocksForClass(Object.class);
+    List<GeneratedClassFile> secondClassList =
+        getAndroidMockGenerator().createMocksForClass(Object.class);
     assertEquals(classList, secondClassList);
   }
 
@@ -119,22 +152,14 @@ public class ClassTypeTests extends TestCase {
             new String[] {"getDelegate___AndroidMock"});
     // This use case doesn't fit our util in any nice way, so just tweak it.
     expectedMethods.get(
-        "genmocks.com.google.android.testing.mocking.ClassHasDelegateMethodsDelegateInterface").add(
-        "getDelegate___AndroidMock");
+        "genmocks.com.google.android.testing.mocking.ClassHasDelegateMethodsDelegateInterface")
+        .add("getDelegate___AndroidMock");
 
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassHasDelegateMethods.class);
+    List<GeneratedClassFile> classes =
+        mockGenerator.createMocksForClass(ClassHasDelegateMethods.class);
     assertEquals(2, classes.size());
-    for (CtClass clazz : classes) {
-      assertTrue(expectedNames.contains(clazz.getName()));
-      assertUnorderedContentsSame(expectedMethods.get(clazz.getName()), getMethodNames(clazz
-          .getDeclaredMethods()));
-    }
-    for (CtClass clazz : classes) {
-      // Forces code to be compiled to check for compilation errors (via
-      // thrown exception)
-      clazz.toBytecode();
-    }
+    assertAllMethodNames(expectedNames, expectedMethods, classes);
   }
 
   public void testClassHasFinalMethods() throws ClassNotFoundException, IOException,
@@ -145,43 +170,26 @@ public class ClassTypeTests extends TestCase {
             "foobar"});
 
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassHasFinalMethods.class);
+    List<GeneratedClassFile> classes =
+        mockGenerator.createMocksForClass(ClassHasFinalMethods.class);
     assertEquals(2, classes.size());
-    for (CtClass clazz : classes) {
-      assertTrue(expectedNames.contains(clazz.getName()));
-      assertUnorderedContentsSame(expectedMethods.get(clazz.getName()), getMethodNames(clazz
-          .getDeclaredMethods()));
-    }
-    for (CtClass clazz : classes) {
-      // Forces code to be compiled to check for compilation errors (via
-      // thrown exception)
-      clazz.toBytecode();
-    }
+    assertAllMethodNames(expectedNames, expectedMethods, classes);
   }
 
   public void testClassHasNoDefaultConstructor() throws ClassNotFoundException, IOException,
       CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassHasNoDefaultConstructor.class);
+    List<GeneratedClassFile> classes =
+        mockGenerator.createMocksForClass(ClassHasNoDefaultConstructor.class);
     assertEquals(2, classes.size());
-    for (CtClass clazz : classes) {
-      // Forces code to be compiled to check for compilation errors (via
-      // thrown exception)
-      clazz.toBytecode();
-    }
   }
 
   public void testClassHasNoPublicConstructors() throws ClassNotFoundException, IOException,
       CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassHasNoPublicConstructors.class);
+    List<GeneratedClassFile> classes =
+        mockGenerator.createMocksForClass(ClassHasNoPublicConstructors.class);
     assertEquals(0, classes.size());
-    for (CtClass clazz : classes) {
-      // Forces code to be compiled to check for compilation errors (via
-      // thrown exception)
-      clazz.toBytecode();
-      
-    }
   }
 
   public void testClassHasOverloadedMethods() throws ClassNotFoundException, IOException,
@@ -191,18 +199,10 @@ public class ClassTypeTests extends TestCase {
         getExpectedMethodsMap(expectedNames, ClassHasOverloadedMethods.class);
 
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassHasOverloadedMethods.class);
+    List<GeneratedClassFile> classes =
+        mockGenerator.createMocksForClass(ClassHasOverloadedMethods.class);
     assertEquals(2, classes.size());
-    for (CtClass clazz : classes) {
-      assertTrue(expectedNames.contains(clazz.getName()));
-      assertUnorderedContentsSame(expectedMethods.get(clazz.getName()), getMethodNames(clazz
-          .getDeclaredMethods()));
-    }
-    for (CtClass clazz : classes) {
-      // Forces code to be compiled to check for compilation errors (via
-      // thrown exception)
-      clazz.toBytecode();
-    }
+    assertAllMethodNames(expectedNames, expectedMethods, classes);
   }
 
   public void testClassHasStaticMethods() throws ClassNotFoundException, IOException,
@@ -213,59 +213,57 @@ public class ClassTypeTests extends TestCase {
             new String[] {"staticFoo"});
 
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassHasStaticMethods.class);
+    List<GeneratedClassFile> classes =
+        mockGenerator.createMocksForClass(ClassHasStaticMethods.class);
     assertEquals(2, classes.size());
-    for (CtClass clazz : classes) {
-      assertTrue(expectedNames.contains(clazz.getName()));
-      assertUnorderedContentsSame(expectedMethods.get(clazz.getName()), getMethodNames(clazz
-          .getDeclaredMethods()));
-    }
-    for (CtClass clazz : classes) {
-      // Forces code to be compiled to check for compilation errors (via
-      // thrown exception)
-      clazz.toBytecode();
-    }
+    assertAllMethodNames(expectedNames, expectedMethods, classes);
   }
 
-  public void testClassIsAnnotation() throws ClassNotFoundException {
+  public void testClassIsAnnotation() throws ClassNotFoundException, IOException,
+      CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassIsAnnotation.class);
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(ClassIsAnnotation.class);
     assertEquals(0, classes.size());
   }
 
-  public void testClassIsEnum() throws ClassNotFoundException {
+  public void testClassIsEnum() throws ClassNotFoundException, IOException, CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassIsEnum.class);
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(ClassIsEnum.class);
     assertEquals(0, classes.size());
   }
 
-  public void testClassIsFinal() throws ClassNotFoundException {
+  public void testClassIsFinal() throws ClassNotFoundException, IOException,
+      CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassIsFinal.class);
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(ClassIsFinal.class);
     assertEquals(0, classes.size());
   }
 
-  public void testClassIsInterface() throws ClassNotFoundException {
+  public void testClassIsInterface() throws ClassNotFoundException, IOException,
+      CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(ClassIsInterface.class);
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(ClassIsInterface.class);
     assertEquals(0, classes.size());
   }
 
-  public void testClassIsArray() throws ClassNotFoundException {
+  public void testClassIsArray() throws ClassNotFoundException, IOException,
+      CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(Object[].class);
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(Object[].class);
     assertEquals(0, classes.size());
   }
 
-  public void testClassIsNormal() throws ClassNotFoundException {
+  public void testClassIsNormal() throws ClassNotFoundException, IOException,
+      CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(Object.class);
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(Object.class);
     assertEquals(2, classes.size());
   }
 
-  public void testClassIsPrimitive() throws ClassNotFoundException {
+  public void testClassIsPrimitive() throws ClassNotFoundException, IOException,
+      CannotCompileException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    List<CtClass> classes = mockGenerator.createMocksForClass(Integer.TYPE);
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(Integer.TYPE);
     assertEquals(0, classes.size());
   }
 }

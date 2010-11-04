@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010 Google Inc.
+ * Copyright 2010 Google Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,15 +80,27 @@ class AndroidMockGenerator {
    * @return a List of CtClass objects representing the Classes and Interfaces
    *         required for mocking the classes requested by {@code clazz}
    * @throws ClassNotFoundException
+   * @throws CannotCompileException
+   * @throws IOException
    */
-  public List<CtClass> createMocksForClass(Class<?> clazz) throws ClassNotFoundException {
+  public List<GeneratedClassFile> createMocksForClass(Class<?> clazz)
+      throws ClassNotFoundException, IOException, CannotCompileException {
+    return this.createMocksForClass(clazz, SdkVersion.UNKNOWN);
+  }
+
+  public List<GeneratedClassFile> createMocksForClass(Class<?> clazz, SdkVersion sdkVersion)
+      throws ClassNotFoundException, IOException, CannotCompileException {
     if (!classIsSupportedType(clazz)) {
       reportReasonForUnsupportedType(clazz);
-      return Arrays.asList(new CtClass[0]);
+      return Arrays.asList(new GeneratedClassFile[0]);
     }
-    CtClass newInterface = generateInterface(clazz);
-    CtClass mockDelegate = generateSubClass(clazz, newInterface);
-    return Arrays.asList(new CtClass[] {newInterface, mockDelegate});
+    CtClass newInterfaceCtClass = generateInterface(clazz, sdkVersion);
+    GeneratedClassFile newInterface = new GeneratedClassFile(newInterfaceCtClass.getName(),
+        newInterfaceCtClass.toBytecode());
+    CtClass mockDelegateCtClass = generateSubClass(clazz, newInterfaceCtClass, sdkVersion);
+    GeneratedClassFile mockDelegate = new GeneratedClassFile(mockDelegateCtClass.getName(),
+        mockDelegateCtClass.toBytecode());
+    return Arrays.asList(new GeneratedClassFile[] {newInterface, mockDelegate});
   }
 
   private void reportReasonForUnsupportedType(Class<?> clazz) {
@@ -146,13 +158,13 @@ class AndroidMockGenerator {
     }
   }
 
-  CtClass generateInterface(Class<?> originalClass) {
+  CtClass generateInterface(Class<?> originalClass, SdkVersion sdkVersion) {
     ClassPool classPool = getClassPool();
     try {
-      return classPool.getCtClass(AndroidMock.getInterfaceNameFor(originalClass));
+      return classPool.getCtClass(FileUtils.getInterfaceNameFor(originalClass, sdkVersion));
     } catch (NotFoundException e) {
       CtClass newInterface =
-          classPool.makeInterface(AndroidMock.getInterfaceNameFor(originalClass));
+          classPool.makeInterface(FileUtils.getInterfaceNameFor(originalClass, sdkVersion));
       addInterfaceMethods(originalClass, newInterface);
       return newInterface;
     }
@@ -204,7 +216,7 @@ class AndroidMockGenerator {
     return clazz.getCanonicalName();
   }
 
-  ClassPool getClassPool() {
+  static ClassPool getClassPool() {
     return ClassPool.getDefault();
   }
 
@@ -219,17 +231,17 @@ class AndroidMockGenerator {
     }
   }
 
-  CtClass generateSubClass(Class<?> superClass, CtClass newInterface)
+  CtClass generateSubClass(Class<?> superClass, CtClass newInterface, SdkVersion sdkVersion)
       throws ClassNotFoundException {
-    if (classExists(AndroidMock.getSubclassNameFor(superClass))) {
+    if (classExists(FileUtils.getSubclassNameFor(superClass, sdkVersion))) {
       try {
-        return getClassPool().get(AndroidMock.getSubclassNameFor(superClass));
+        return getClassPool().get(FileUtils.getSubclassNameFor(superClass, sdkVersion));
       } catch (NotFoundException e) {
         throw new ClassNotFoundException("This should be impossible, since we just checked for "
             + "the existence of the class being created", e);
       }
     }
-    CtClass newClass = generateSkeletalClass(superClass, newInterface);
+    CtClass newClass = generateSkeletalClass(superClass, newInterface, sdkVersion);
     if (!newClass.isFrozen()) {
       newClass.addInterface(newInterface);
       try {
@@ -333,11 +345,17 @@ class AndroidMockGenerator {
 
   void addMethods(Class<?> superClass, CtClass newClass) {
     Method[] methods = getAllMethods(superClass);
+    if (newClass.isFrozen()) {
+      newClass.defrost();
+    }
+    List<CtMethod> existingMethods = Arrays.asList(newClass.getDeclaredMethods());
     for (Method method : methods) {
       try {
         if (isMockable(method)) {
           CtMethod newMethod = CtMethod.make(getDelegateMethodSource(method), newClass);
-          newClass.addMethod(newMethod);
+          if (!existingMethods.contains(newMethod)) {
+            newClass.addMethod(newMethod);
+          }
         }
       } catch (UnsupportedOperationException e) {
         // Can't handle finals and statics.
@@ -431,12 +449,26 @@ class AndroidMockGenerator {
     return methodBody.toString();
   }
 
-  CtClass generateSkeletalClass(Class<?> superClass, CtClass newInterface)
+  CtClass generateSkeletalClass(Class<?> superClass, CtClass newInterface, SdkVersion sdkVersion)
       throws ClassNotFoundException {
     ClassPool classPool = getClassPool();
     CtClass superCtClass = getCtClassForClass(superClass);
-    CtClass newClass =
-        classPool.makeClass(AndroidMock.getSubclassNameFor(superClass), superCtClass);
+    String subclassName = FileUtils.getSubclassNameFor(superClass, sdkVersion);
+
+    CtClass newClass;
+    try {
+      newClass = classPool.makeClass(subclassName, superCtClass);
+    } catch (RuntimeException e) {
+      if (e.getMessage().contains("frozen class")) {
+        try {
+          return classPool.get(subclassName);
+        } catch (NotFoundException ex) {
+          throw new ClassNotFoundException("Internal Error: could not find class", ex);
+        }
+      }
+      throw e;
+    }
+
     try {
       newClass.addField(new CtField(newInterface, getDelegateFieldName(), newClass));
     } catch (CannotCompileException e) {

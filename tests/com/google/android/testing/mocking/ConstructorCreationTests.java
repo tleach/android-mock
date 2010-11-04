@@ -15,10 +15,10 @@
  */
 package com.google.android.testing.mocking;
 
+import junit.framework.TestCase;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
-
-import junit.framework.TestCase;
 
 
 /**
@@ -68,19 +68,23 @@ public class ConstructorCreationTests extends TestCase {
       usedFloatConstructor = false;
     }
   }
-    
+
   private void hasConstructor(Object... args) {
     Constructor<TestClass> constructor =
         AndroidMock.getConstructorFor(TestClass.class, args);
     assertNotNull(constructor);
   }
-  
+
   private void doesNotHaveConstructor(Object... args) {
-    Constructor<TestClass> constructor =
-        AndroidMock.getConstructorFor(TestClass.class, args);
-    assertNull(constructor);
+    try {
+      Constructor<TestClass> constructor =
+          AndroidMock.getConstructorFor(TestClass.class, args);
+      fail("A constructor was found: " + constructor);
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
   }
-  
+
   public void testConstructors() {
     hasConstructor(new Foo(1));
     doesNotHaveConstructor(new Bar(2));
@@ -88,12 +92,11 @@ public class ConstructorCreationTests extends TestCase {
     hasConstructor(1);
     hasConstructor(1, 2);
     doesNotHaveConstructor(new Foo(1), 2);
-    hasConstructor(1, 2);
     hasConstructor(1, new Integer("2"));
     hasConstructor(1, 2.0);
     hasConstructor(1, 2.0f);
   }
-  
+
   private void checkConstructor(Object[] args, Type[] expectedTypes) {
     Constructor<TestClass> constructor =
         AndroidMock.getConstructorFor(TestClass.class, args);
@@ -104,6 +107,7 @@ public class ConstructorCreationTests extends TestCase {
       assertEquals(expectedTypes[i], types[i]);
     }
   }
+
   public void testCorrectConstructor() {
     checkConstructor(
             new Object[]{new Foo(1)},
@@ -115,10 +119,7 @@ public class ConstructorCreationTests extends TestCase {
             new Object[]{1},
             new Type[]{Integer.TYPE});
     checkConstructor(
-            new Object[]{1, 2},
-            new Type[]{Integer.TYPE, Float.TYPE});
-    checkConstructor(
-            new Object[]{1, new Integer("2")},
+            new Object[]{1, new Float("2")},
             new Type[]{Integer.TYPE, Float.TYPE});
     checkConstructor(
             new Object[]{1, 2.0},

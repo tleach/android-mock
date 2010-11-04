@@ -16,31 +16,14 @@ Android Mock requires that the code being mocked be instrumented prior to
 loading to the Dalvik VM by having called the MockGenerator.jar file. Try
 running java -jar MockGenerator.jar --help for more information.
   </description>
-  
-  <!-- Global Build Properties -->
-  <property name="easymock-jar" value="easymock.jar"/>
-  <property name="java-package" value="com/google/android/testing/mocking"/>
-  <property name="javassist-jar" value="javassist.jar"/>
-  <property name="lib-folder" value="lib"/>
-  <property name="source-base" value="src"/>
-  <property name="staging" value="staging"/>
 
-  <!-- Android Mock Generator Properties -->
-  <property name="mockgen-bin" value="bin/mockgen"/>
-  <property name="mockgen-deploy-jar" value="AndroidMockGenerator.jar"/>
-  <property name="mockgen-includes" value="${java-package}/GeneratedMockJar.readme"/>
-  <property name="mockgen-java-files" value="com/google/android/testing/mocking/*.java"/>
-  <property name="mockgen-nodeps-jar" value="AndroidMockGenerator-nodeps.jar"/>
-  <property name="meta-service-folder" value="META-INF/services"/>
-  <property name="annotations-meta-file"
-      value="${meta-service-folder}/javax.annotation.processing.Processor"/>
-  
-  <!-- Android Mock Runtime Properties -->
-  <property name="runtime-bin" value="bin/runtime"/>
-  <property name="runtime-deploy-jar" value="AndroidMockRuntime.jar"/>
-  <property name="runtime-java-files" value="${java-package}/AndroidMock.java 
-    ${java-package}/MockObject.java ${java-package}/UsesMocks.java"/>
-  <property name="runtime-nodeps-jar" value="AndroidMockRuntime-nodeps.jar"/>
+  <!-- Global Build Properties -->
+  <property file="build.properties"/>
+
+  <!-- Imports -->
+  <import file="src/build-runtime.xml"/>
+  <import file="src/build-mockgen.xml"/>
+  <import file="src/build-framework-gen.xml"/>
 
   <!-- Android Mock Source Jar Properties -->
   <property name="source-bin" value="bin/source"/>
@@ -53,28 +36,20 @@ running java -jar MockGenerator.jar --help for more information.
   <property name="test-source-base" value="tests"/>
 
   <!-- Classpaths -->
-  <path id="runtime.path">
-    <pathelement location="${lib-folder}/${easymock-jar}"/>
-  </path>
-  <path id="generator.path">
-    <path refid="runtime.path"/>
-    <pathelement location="${lib-folder}/${javassist-jar}"/>
-  </path>
   <path id="tests.path">
-    <path refid="generator.path"/>
-    <pathelement location="${runtime-bin}/${runtime-deploy-jar}"/>
-    <pathelement location="${mockgen-bin}/${mockgen-deploy-jar}"/>
+    <pathelement location="${lib-folder}/${easymock-jar}"/>
+    <pathelement location="${lib-folder}/${javassist-jar}"/>
+    <pathelement location="${runtime.bin}/${runtime.deploy-jar}"/>
+    <pathelement location="${mockgen.bin}/${mockgen.deploy-jar}"/>
     <pathelement location="${lib-folder}/${junit-jar}"/>
   </path>
 
   <!-- Private Build Targets -->
   <target name="-dirs">
-    <mkdir dir="${runtime-bin}"/>
-    <mkdir dir="${mockgen-bin}"/>
     <mkdir dir="${source-bin}"/>
     <mkdir dir="${test-bin}"/>
-    <mkdir dir="${test-results-folder}"/>
     <mkdir dir="${staging}"/>
+    <mkdir dir="${test-results-folder}"/>
   </target>
 
   <target name="-clean-staging">
@@ -82,84 +57,45 @@ running java -jar MockGenerator.jar --help for more information.
   </target>
 
   <!-- Public Build Targets -->
-  <target name="clean" depends="-clean-staging">
-    <delete dir="${runtime-bin}"/>
-    <delete dir="${mockgen-bin}"/>
+  <target name="clean" depends="-clean-staging,mockgen.clean,runtime.clean">
     <delete dir="${source-bin}"/>
-    <delete dir="${test-bin}"/>
-    <delete dir="${test-results-folder}"/>
+    <delete dir="${framework-mock-staging}"/>
+    <delete dir="${test-results-folder}" failonerror="false"/>
+    <delete dir="${test-bin}" failonerror="false"/>
   </target>
 
   <target name="build-dist"
-      depends="build-mock-generator-deploy, build-runtime-deploy, build-source-lib"/>
+      depends="mockgen.build-deploy, runtime.build-deploy, build-source-lib"/>
 
-  <target name="build-mock-generator" depends="clean, -dirs"
-      description="Builds the Mock Generator jar file">
-    <javac destdir="${mockgen-bin}" srcdir="${source-base}" includes="${mockgen-java-files}"
-        debug="true">
-      <classpath refid="generator.path"/>
-    </javac>
-    <copy todir="${mockgen-bin}">
-      <fileset dir="${source-base}" includes="${mockgen-includes}"/>
-    </copy>
-    <mkdir dir="${mockgen-bin}/${meta-service-folder}"/>
-    <echo file="${mockgen-bin}/${annotations-meta-file}"
-        message="com.google.android.testing.mocking.UsesMocksProcessor"/>
-    <jar destfile="${mockgen-bin}/${mockgen-nodeps-jar}" basedir="${mockgen-bin}"/>
-  </target>
-  
-  <target name="build-runtime" depends="clean, -dirs"
-      description="Builds the Android Mock Runtime library jar file without dependencies included.">
-    <javac destdir="${runtime-bin}" target="1.5" srcdir="${source-base}"
-        includes="${runtime-java-files}" debug="true">
-      <classpath refid="runtime.path"/>
-    </javac>
-    <jar destfile="${runtime-bin}/${runtime-nodeps-jar}" basedir="${runtime-bin}"/>
-  </target>
-  
-  <target name="build-mock-generator-deploy" depends="build-mock-generator"
-      description="Builds the Mock Generator jar file with dependencies included.">
-    <unjar dest="${staging}">
-      <fileset dir=".">
-        <include name="${mockgen-bin}/${mockgen-nodeps-jar}"/>
-        <include name="${lib-folder}/${easymock-jar}"/>
-        <include name="${lib-folder}/${javassist-jar}"/>
-      </fileset>
-    </unjar>
-    <jar destfile="${mockgen-bin}/${mockgen-deploy-jar}" basedir="${staging}"/>
-  </target>
-
-  <target name="build-runtime-deploy" depends="build-runtime"
-      description="Builds the Android Mock Runtime library jar file with dependencies included.">
-    <unjar dest="${staging}">
-      <fileset dir=".">
-        <include name="${runtime-bin}/${runtime-nodeps-jar}"/>
-        <include name="${lib-folder}/${easymock-jar}"/>
-      </fileset>
-    </unjar>
-    <jar destfile="${runtime-bin}/${runtime-deploy-jar}" basedir="${staging}"/>
-  </target>
-
-  <target name="build-source-lib" depends="clean, -dirs"
+  <target name="build-source-lib" depends="-dirs"
       description="Builds a jar file containing the Android Mock source files (no dependencies)">
     <jar destfile="${source-bin}/${source-lib-jar}" basedir="${source-base}" includes="**/*.java"/>
   </target>
-  
+
   <!-- Public Test Targets -->
   <target name="all-tests" depends="-test-base"
       description="Builds the full distribution package and runs all tests storing results in ${test-results-folder}">
-    <junit printsummary="no" showoutput="no" reloading="false">
+    <junit printsummary="no" showoutput="no" reloading="false" failureproperty="testsFailed">
       <formatter type="xml"/>
       <classpath location="${test-bin}"/>
       <classpath refid="tests.path"/>
       <batchtest todir="${test-results-folder}">
         <fileset dir="${test-bin}">
           <include name="**/*Test.class"/>
+          <include name="**/*Tests.class"/>
         </fileset>
       </batchtest>
     </junit>
+    <echo>Test Results are available in ${test-results-folder}</echo>
+    <junitreport todir="${test-results-folder}">
+      <fileset dir="${test-results-folder}">
+        <include name="TEST-*.xml"/>
+      </fileset>
+      <report format="frames" todir="${test-results-folder}/html"/>
+    </junitreport>
+    <fail if="testsFailed" message="Tests failed"/>
   </target>
-  
+
   <!-- Private Test Targets -->
   <target name="-test-base" depends="build-dist">
     <javac destdir="${test-bin}" target="1.5" srcdir="${test-source-base}"
@@ -168,4 +104,5 @@ running java -jar MockGenerator.jar --help for more information.
       <classpath refid="tests.path"/>
     </javac>
   </target>
+
 </project>
