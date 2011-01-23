@@ -17,6 +17,7 @@ package com.google.android.testing.mocking;
 
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.util.Vector;
 
 /**
@@ -24,14 +25,18 @@ import java.util.Vector;
  */
 public class FileUtilsTest extends TestCase {
   public void testGetFilenameForClass() {
-    assertEquals("java/lang/Object.class", FileUtils.getFilenameFor(Object.class.getName()));
-    assertEquals("com/google/android/testing/mocking/FileUtilsTest$InnerClass.class",
+    assertEquals(convertPathToNative("java/lang/Object.class"),
+        FileUtils.getFilenameFor(Object.class.getName()));
+    assertEquals(convertPathToNative(
+            "com/google/android/testing/mocking/FileUtilsTest$InnerClass.class"),
         FileUtils.getFilenameFor(InnerClass.class.getName()));
   }
 
   public void testGetClassNameFor() {
-    assertEquals("java/lang/Object.class", FileUtils.getFilenameFor(Object.class.getName()));
-    assertEquals("com/google/android/testing/mocking/FileUtilsTest$InnerClass.class",
+    assertEquals(convertPathToNative("java/lang/Object.class"),
+        FileUtils.getFilenameFor(Object.class.getName()));
+    assertEquals(convertPathToNative(
+            "com/google/android/testing/mocking/FileUtilsTest$InnerClass.class"),
         FileUtils.getFilenameFor(InnerClass.class.getName()));
   }
 
@@ -63,6 +68,10 @@ public class FileUtilsTest extends TestCase {
         FileUtils.getSubclassNameFor(Vector.class, SdkVersion.FROYO));
     assertEquals("genmocks.java.util.VectorDelegateSubclass",
         FileUtils.getSubclassNameFor(Vector.class, SdkVersion.UNKNOWN));
+  }
+
+  private String convertPathToNative(String path) {
+    return path.replace('/', File.separatorChar).replace('\\', File.separatorChar);
   }
 
   class InnerClass {

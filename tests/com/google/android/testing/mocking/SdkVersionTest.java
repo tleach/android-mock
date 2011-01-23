@@ -28,7 +28,7 @@ public class SdkVersionTest extends TestCase {
   public void testGetAllVersions() {
     List<SdkVersion> versions = Arrays.asList(SdkVersion.getAllVersions());
     List<SdkVersion> values = Arrays.asList(SdkVersion.values());
-    assertEquals(5, versions.size());
+    assertEquals(6, versions.size());
     assertTrue(values.containsAll(versions));
     assertFalse(versions.contains(SdkVersion.UNKNOWN));
   }
@@ -39,9 +39,10 @@ public class SdkVersionTest extends TestCase {
     assertEquals("v201", SdkVersion.ECLAIR_0_1.getVersionName());
     assertEquals("v21", SdkVersion.ECLAIR_MR1.getVersionName());
     assertEquals("v22", SdkVersion.FROYO.getVersionName());
+    assertEquals("v23", SdkVersion.GINGERBREAD.getVersionName());
     assertEquals("", SdkVersion.UNKNOWN.getVersionName());
     assertEquals("Unknown new SDK has been added, update this test",
-        6, SdkVersion.values().length);
+        7, SdkVersion.values().length);
   }
 
   public void testGetPackagePrefix() {
@@ -50,9 +51,10 @@ public class SdkVersionTest extends TestCase {
     assertEquals("v201.", SdkVersion.ECLAIR_0_1.getPackagePrefix());
     assertEquals("v21.", SdkVersion.ECLAIR_MR1.getPackagePrefix());
     assertEquals("v22.", SdkVersion.FROYO.getPackagePrefix());
+    assertEquals("v23.", SdkVersion.GINGERBREAD.getPackagePrefix());
     assertEquals("", SdkVersion.UNKNOWN.getPackagePrefix());
     assertEquals("Unknown new SDK has been added, update this test",
-        6, SdkVersion.values().length);
+        7, SdkVersion.values().length);
   }
 
   public void testGetCurrentVersion() {
@@ -66,8 +68,10 @@ public class SdkVersionTest extends TestCase {
     assertEquals(SdkVersion.ECLAIR_0_1, SdkVersion.getVersionFor(6));
     assertEquals(SdkVersion.ECLAIR_MR1, SdkVersion.getVersionFor(7));
     assertEquals(SdkVersion.FROYO, SdkVersion.getVersionFor(8));
+    assertEquals(SdkVersion.GINGERBREAD, SdkVersion.getVersionFor(9));
     assertEquals(SdkVersion.UNKNOWN, SdkVersion.getVersionFor(-1));
-    for (int i = 9; i < 50; ++i) {
+    // All likely future version numbers...  Modify this when a new version is added
+    for (int i = 10; i < 50; ++i) {
       assertEquals("Unknown new SDK has been added, update this test",
           SdkVersion.UNKNOWN, SdkVersion.getVersionFor(i));
     }

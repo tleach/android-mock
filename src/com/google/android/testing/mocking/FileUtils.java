@@ -62,7 +62,9 @@ public class FileUtils {
     if (!filename.endsWith(".class")) {
       throw new IllegalArgumentException("Argument provided is not a class filename: " + filename);
     }
-    return filename.replace(File.separatorChar, '.').substring(0, filename.length() - 6);
+    // On non-Linux, files use the native separator, but jar entries use /... sigh
+    return filename.replace(File.separatorChar, '.').replace('/', '.')
+        .substring(0, filename.length() - 6);
   }
 
   static void saveClassToFolder(GeneratedClassFile clazz, String outputFolderName)

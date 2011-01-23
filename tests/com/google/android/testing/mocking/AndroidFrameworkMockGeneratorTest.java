@@ -22,6 +22,7 @@ import javassist.NotFoundException;
 
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,7 +124,8 @@ public class AndroidFrameworkMockGeneratorTest extends TestCase {
     for (SdkVersion version : SdkVersion.getAllVersions()) {
       getMockGenerator();
       assertEquals("lib/android/android_" + version.getVersionName() + ".jar",
-          AndroidFrameworkMockGenerator.getJarFileNameForVersion(version));
+          AndroidFrameworkMockGenerator.getJarFileNameForVersion(version)
+              .replace('\\', '/'));
     }
   }
 
@@ -151,7 +153,9 @@ public class AndroidFrameworkMockGeneratorTest extends TestCase {
         "v21.genmocks.java.util.VectorDelegateSubclass",
         "v21.genmocks.java.util.VectorDelegateInterface",
         "v22.genmocks.java.util.VectorDelegateSubclass",
-        "v22.genmocks.java.util.VectorDelegateInterface"
+        "v22.genmocks.java.util.VectorDelegateInterface",
+        "v23.genmocks.java.util.VectorDelegateSubclass",
+        "v23.genmocks.java.util.VectorDelegateInterface"
     };
     assertEquals(expectedClassNames.length, mocks.size());
     for (int i = 0; i < mocks.size(); ++i) {
