@@ -14,6 +14,7 @@
   <property name="android-201-jar" value="android_v201.jar"/>
   <property name="android-21-jar" value="android_v21.jar"/>
   <property name="android-22-jar" value="android_v22.jar"/>
+  <property name="android-23-jar" value="android_v23.jar"/>
 
   <!-- property name="framework.mock-bin" value=see build.properties -->
   <!-- property name="framework.mock-jar" value=see build.properties -->
@@ -43,6 +44,7 @@
     <generate-framework-mocks api-jar-file="${android-201-jar}" api-level="6"/>
     <generate-framework-mocks api-jar-file="${android-21-jar}" api-level="7"/>
     <generate-framework-mocks api-jar-file="${android-22-jar}" api-level="8"/>
+  	<generate-framework-mocks api-jar-file="${android-23-jar}" api-level="9"/>
     <jar destfile="${framework.mock-bin}/${framework.mock-jar}"
          basedir="${framework.mock-staging}" includes="**/*.class" index="true"/>
   </target>
