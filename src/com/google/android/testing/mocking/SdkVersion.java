@@ -27,7 +27,7 @@ import java.util.List;
  */
 public enum SdkVersion {
   UNKNOWN("", -1), CUPCAKE("v15", 3), DONUT("v16", 4), ECLAIR_0_1("v201", 6),
-  ECLAIR_MR1("v21", 7), FROYO("v22", 8), GINGERBREAD("v23", 9);
+  ECLAIR_MR1("v21", 7), FROYO("v22", 8), GINGERBREAD("v231", 9);
 
   private static final int SDK_VERSION;
 

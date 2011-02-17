@@ -154,8 +154,8 @@ public class AndroidFrameworkMockGeneratorTest extends TestCase {
         "v21.genmocks.java.util.VectorDelegateInterface",
         "v22.genmocks.java.util.VectorDelegateSubclass",
         "v22.genmocks.java.util.VectorDelegateInterface",
-        "v23.genmocks.java.util.VectorDelegateSubclass",
-        "v23.genmocks.java.util.VectorDelegateInterface"
+        "v231.genmocks.java.util.VectorDelegateSubclass",
+        "v231.genmocks.java.util.VectorDelegateInterface"
     };
     assertEquals(expectedClassNames.length, mocks.size());
     for (int i = 0; i < mocks.size(); ++i) {
