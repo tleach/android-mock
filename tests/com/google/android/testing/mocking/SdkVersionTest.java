@@ -39,7 +39,7 @@ public class SdkVersionTest extends TestCase {
     assertEquals("v201", SdkVersion.ECLAIR_0_1.getVersionName());
     assertEquals("v21", SdkVersion.ECLAIR_MR1.getVersionName());
     assertEquals("v22", SdkVersion.FROYO.getVersionName());
-    assertEquals("v23", SdkVersion.GINGERBREAD.getVersionName());
+    assertEquals("v231", SdkVersion.GINGERBREAD.getVersionName());
     assertEquals("", SdkVersion.UNKNOWN.getVersionName());
     assertEquals("Unknown new SDK has been added, update this test",
         7, SdkVersion.values().length);
@@ -51,7 +51,7 @@ public class SdkVersionTest extends TestCase {
     assertEquals("v201.", SdkVersion.ECLAIR_0_1.getPackagePrefix());
     assertEquals("v21.", SdkVersion.ECLAIR_MR1.getPackagePrefix());
     assertEquals("v22.", SdkVersion.FROYO.getPackagePrefix());
-    assertEquals("v23.", SdkVersion.GINGERBREAD.getPackagePrefix());
+    assertEquals("v231.", SdkVersion.GINGERBREAD.getPackagePrefix());
     assertEquals("", SdkVersion.UNKNOWN.getPackagePrefix());
     assertEquals("Unknown new SDK has been added, update this test",
         7, SdkVersion.values().length);
