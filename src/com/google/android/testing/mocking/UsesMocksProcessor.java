@@ -35,6 +35,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 
@@ -123,6 +124,14 @@ public class UsesMocksProcessor extends AbstractProcessor {
     }
   }
 
+  private String toClassPath(TypeElement element) {
+    if (element.getNestingKind().isNested()) {
+      return toClassPath((TypeElement) element.getEnclosingElement()) + "$" +
+          element.getSimpleName().toString();
+    }
+    return element.getQualifiedName().toString();
+  }
+
   /**
    * Finds all of the classes that should be mocked, based on {@link UsesMocks} annotations
    * in the various source files being compiled.
@@ -138,16 +147,29 @@ public class UsesMocksProcessor extends AbstractProcessor {
       for (AnnotationMirror mirror : mirrors) {
         if (mirror.getAnnotationType().toString().equals(UsesMocks.class.getName())) {
           for (AnnotationValue annotationValue : mirror.getElementValues().values()) {
-            for (Object classFileName : (Iterable<?>) annotationValue.getValue()) {
-              String className = classFileName.toString();
-              if (className.endsWith(".class")) {
-                className = className.substring(0, className.length() - 6);
+            @SuppressWarnings("unchecked")
+            Iterable<? extends AnnotationValue> classValueIterable =
+                (Iterable<? extends AnnotationValue>) annotationValue.getValue();
+            for (AnnotationValue classValue : classValueIterable) {
+              String classPath = null;
+              Object value = classValue.getValue();
+              if (value instanceof DeclaredType) {
+                Element element = ((DeclaredType) value).asElement();
+                if (element instanceof TypeElement) {
+                  classPath = toClassPath((TypeElement) element);
+                }
               }
-              logger.printMessage(Kind.NOTE, "Adding Class to Mocking List: " + className);
+              if (classPath == null) {
+                classPath = value.toString();
+                if (classPath.endsWith(".class")) {
+                  classPath = classPath.substring(0, classPath.length() - 6);
+                }
+              }
+              logger.printMessage(Kind.NOTE, "Adding Class to Mocking List: " + classPath);
               try {
-                classList.add(Class.forName(className, false, getClass().getClassLoader()));
+                classList.add(Class.forName(classPath, false, getClass().getClassLoader()));
               } catch (ClassNotFoundException e) {
-                logger.reportClasspathError(className, e);
+                logger.reportClasspathError(classPath, e);
               }
             }
           }

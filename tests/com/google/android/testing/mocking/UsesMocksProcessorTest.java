@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +41,9 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -90,9 +94,71 @@ public class UsesMocksProcessorTest extends TestCase {
   private AnnotationValue getMockAnnotationValue(Class<?> clazz) {
     AnnotationValue mockValue = EasyMock.createMock(AnnotationValue.class);
     EasyMock.expect(mockValue.getValue()).andReturn(
-        Arrays.asList(new String[] {clazz.getName() + ".class"})).anyTimes();
+        Collections.singletonList(getMockClassAnnotationValue(clazz))).anyTimes();
     EasyMock.replay(mockValue);
     return mockValue;
+  }
+
+  private AnnotationValue getMockClassAnnotationValue(Class<?> clazz) {
+    AnnotationValue mockValue = EasyMock.createMock(AnnotationValue.class);
+    EasyMock.expect(mockValue.getValue()).andReturn(
+        getMockDeclaredType(clazz)).anyTimes();
+    EasyMock.replay(mockValue);
+    return mockValue;
+  }
+
+  private DeclaredType getMockDeclaredType(Class<?> clazz) {
+    DeclaredType mockType = EasyMock.createMock(DeclaredType.class);
+    EasyMock.expect(mockType.asElement()).andReturn(getMockTypeElement(clazz)).anyTimes();
+    EasyMock.replay(mockType);
+    return mockType;
+  }
+
+  private TypeElement getMockTypeElement(Class<?> clazz) {
+    TypeElement mockElement = EasyMock.createMock(TypeElement.class);
+    Class<?> enclosingClass = clazz.getEnclosingClass();
+    if (enclosingClass == null) {
+      EasyMock.expect(mockElement.getNestingKind()).andReturn(NestingKind.TOP_LEVEL).anyTimes();
+      EasyMock.expect(mockElement.getQualifiedName()).andReturn(
+          getMockName(clazz.getName())).anyTimes();
+    } else {
+      EasyMock.expect(mockElement.getNestingKind()).andReturn(NestingKind.MEMBER).anyTimes();
+      EasyMock.expect(mockElement.getSimpleName()).andReturn(
+          getMockName(clazz.getSimpleName())).anyTimes();
+      EasyMock.expect(mockElement.getEnclosingElement()).andReturn(
+          getMockTypeElement(enclosingClass)).anyTimes();
+    }
+    EasyMock.replay(mockElement);
+    return mockElement;
+  }
+
+  private Name getMockName(final String name) {
+    return new Name() {
+      @Override
+      public String toString() {
+        return name;
+      }
+
+      @Override
+      public boolean contentEquals(CharSequence cs) {
+        return false;
+      }
+
+      @Override
+      public char charAt(int index) {
+        return '\0';
+      }
+
+      @Override
+      public int length() {
+        return 0;
+      }
+
+      @Override
+      public CharSequence subSequence(int start, int end) {
+        return null;
+      }
+    };
   }
 
   private ExecutableElement getMockExecutableElement() {
@@ -265,11 +331,13 @@ public class UsesMocksProcessorTest extends TestCase {
   }
 
   public void testFindClassesToMock() {
-    Set<? extends Element> annotatedElements = getAnnotatedElementsSet(Set.class, TestCase.class);
+    Set<? extends Element> annotatedElements = getAnnotatedElementsSet(
+        Set.class, TestCase.class, Map.Entry.class);
     List<Class<?>> classesList = getProcessor().findClassesToMock(annotatedElements);
 
     assertEquals(annotatedElements.size(), classesList.size());
     assertTrue(classesList.contains(Set.class));
     assertTrue(classesList.contains(TestCase.class));
+    assertTrue(classesList.contains(Map.Entry.class));
   }
 }
