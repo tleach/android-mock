@@ -73,12 +73,16 @@ public class AndroidFrameworkMockGenerator {
     return classList;
   }
 
-  private List<Class<?>> getPrebuiltClassesFor(Class<?> clazz) throws ClassNotFoundException {
+  private List<Class<?>> getPrebuiltClassesFor(Class<?> clazz) {
     List<Class<?>> classes = new ArrayList<Class<?>>();
     SdkVersion[] versions = SdkVersion.getAllVersions();
     for (SdkVersion sdkVersion : versions) {
-      classes.add(Class.forName(FileUtils.getSubclassNameFor(clazz, sdkVersion)));
-      classes.add(Class.forName(FileUtils.getInterfaceNameFor(clazz, sdkVersion)));
+      try {
+        classes.add(Class.forName(FileUtils.getSubclassNameFor(clazz, sdkVersion)));
+        classes.add(Class.forName(FileUtils.getInterfaceNameFor(clazz, sdkVersion)));
+      } catch (ClassNotFoundException e) {
+        // Tolerate this as it may be that not all SDK versions contain the class
+      }
     }
     return classes;
   }
