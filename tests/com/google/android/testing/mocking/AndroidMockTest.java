@@ -231,12 +231,6 @@ public class AndroidMockTest extends TestCase {
       // Expected
     }
     try {
-      SimpleTimeZone mockTimeZone = AndroidMock.createMock(SimpleTimeZone.class, 0, null);
-      fail("Excepted an IllegalArgumentException for indeterminate null constructor parameters");
-    } catch (IllegalArgumentException e) {
-      // Expected
-    }
-    try {
       SimpleTimeZone mockTimeZone = AndroidMock.createMock(SimpleTimeZone.class, 0, new Object());
       fail("Excepted an IllegalArgumentException for incorrect constructor parameters");
     } catch (IllegalArgumentException e) {
@@ -288,12 +282,6 @@ public class AndroidMockTest extends TestCase {
     try {
       SimpleTimeZone mockTimeZone = AndroidMock.createNiceMock(SimpleTimeZone.class, "GMT");
       fail("Excepted an IllegalArgumentException for incorrect number of constructor parameters");
-    } catch (IllegalArgumentException e) {
-      // Expected
-    }
-    try {
-      SimpleTimeZone mockTimeZone = AndroidMock.createNiceMock(SimpleTimeZone.class, 0, null);
-      fail("Excepted an IllegalArgumentException for indeterminate null constructor parameters");
     } catch (IllegalArgumentException e) {
       // Expected
     }
@@ -380,12 +368,6 @@ public class AndroidMockTest extends TestCase {
     try {
       SimpleTimeZone mockTimeZone = AndroidMock.createStrictMock(SimpleTimeZone.class, "GMT");
       fail("Excepted an IllegalArgumentException for incorrect number of constructor parameters");
-    } catch (IllegalArgumentException e) {
-      // Expected
-    }
-    try {
-      SimpleTimeZone mockTimeZone = AndroidMock.createStrictMock(SimpleTimeZone.class, 0, null);
-      fail("Excepted an IllegalArgumentException for indeterminate null constructor parameters");
     } catch (IllegalArgumentException e) {
       // Expected
     }

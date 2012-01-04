@@ -2746,9 +2746,11 @@ public class AndroidMock {
         for (int i = 0; i < params.length; ++i) {
           Object arg = args[i];
           if (arg == null) {
-            arg = Void.TYPE;
-          }
-          if (!params[i].isAssignableFrom(arg.getClass())) {
+            if (params[i].isPrimitive()) {
+              exactMatch = false;
+              compatibleMatch = false;
+            }
+          } else if (!params[i].isAssignableFrom(arg.getClass())) {
             if (params[i].isPrimitive()) {
               exactMatch &= isUnboxableToPrimitive(params[i], arg, true);
               compatibleMatch &= isUnboxableToPrimitive(params[i], arg, false);
