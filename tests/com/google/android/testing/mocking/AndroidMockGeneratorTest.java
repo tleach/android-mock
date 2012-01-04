@@ -97,9 +97,9 @@ public class AndroidMockGeneratorTest extends TestCase {
     List<String> expectedNames = getExpectedNamesForNumberClass();
     expectedNames.addAll(Arrays.asList(new String[] {"abs", "add", "and", "andNot", "bitCount",
         "bitLength", "clearBit", "compareTo", "divide", "divideAndRemainder", "flipBit", "gcd",
-        "getLowestSetBit", "isProbablePrime", "max", "min", "mod", "modInverse", "modPow",
-        "multiply", "negate", "nextProbablePrime", "not", "or", "pow", "remainder", "setBit",
-        "shiftLeft", "shiftRight", "signum", "subtract", "testBit", "toByteArray", "toString",
+        "getLowestSetBit", "isProbablePrime", "javaIncrement", "max", "min", "mod", "modInverse", "modPow",
+        "multiply", "multiply", "negate", "nextProbablePrime", "not", "or", "pow", "primeToCertainty", "remainder", 
+        "setBit", "shiftLeft", "shiftRight", "signum", "subtract", "testBit", "toByteArray", "toString",
         "xor"}));
     return expectedNames;
   }
@@ -169,6 +169,9 @@ public class AndroidMockGeneratorTest extends TestCase {
         "public long java.math.BigInteger.longValue()",
         "public java.math.BigInteger java.math.BigInteger.mod(java.math.BigInteger)",
         "public java.math.BigInteger java.math.BigInteger.nextProbablePrime()",
+        "boolean java.math.BigInteger.primeToCertainty(int,java.util.Random)", 
+        "java.math.BigInteger java.math.BigInteger.multiply(long)", 
+        "int[] java.math.BigInteger.javaIncrement(int[])"
         }));
     return expectedNames;
   }

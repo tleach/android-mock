@@ -394,7 +394,7 @@ class AndroidMockGenerator {
     }
     int modifiers = method.getModifiers();
     return !Modifier.isFinal(modifiers) && !Modifier.isStatic(modifiers) && !method.isBridge()
-        && (Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers));
+        && !Modifier.isPrivate(modifiers);
   }
 
   boolean isForbiddenMethod(Method method) {
