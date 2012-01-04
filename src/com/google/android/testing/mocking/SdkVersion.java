@@ -29,7 +29,8 @@ public enum SdkVersion {
   UNKNOWN("", -1), CUPCAKE("v15", 3), DONUT("v16", 4), ECLAIR_0_1("v201", 6),
   ECLAIR_MR1("v21", 7), FROYO("v22", 8), GINGERBREAD("v231", 9),
   GINGERBREAD_NFC("v233", 10), HONEYCOMB_MR1("v30", 11),
-  HONEYCOMB_MR2("v31", 12);
+  HONEYCOMB_MR2("v31", 12), HONEYCOMB_MR3("v32", 13), ICE_CREAM_SANDWICH_MR1("v40", 14),
+  ICE_CREAM_SANDWICH_MR2("v403", 15);
 
   private static final int SDK_VERSION;
 

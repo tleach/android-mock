@@ -28,7 +28,7 @@ public class SdkVersionTest extends TestCase {
   public void testGetAllVersions() {
     List<SdkVersion> versions = Arrays.asList(SdkVersion.getAllVersions());
     List<SdkVersion> values = Arrays.asList(SdkVersion.values());
-    assertEquals(9, versions.size());
+    assertEquals(12, versions.size());
     assertTrue(values.containsAll(versions));
     assertFalse(versions.contains(SdkVersion.UNKNOWN));
   }
@@ -43,9 +43,12 @@ public class SdkVersionTest extends TestCase {
     assertEquals("v233", SdkVersion.GINGERBREAD_NFC.getVersionName());
     assertEquals("v30", SdkVersion.HONEYCOMB_MR1.getVersionName());
     assertEquals("v31", SdkVersion.HONEYCOMB_MR2.getVersionName());
+    assertEquals("v32", SdkVersion.HONEYCOMB_MR3.getVersionName());
+    assertEquals("v40", SdkVersion.ICE_CREAM_SANDWICH_MR1.getVersionName());
+    assertEquals("v403", SdkVersion.ICE_CREAM_SANDWICH_MR2.getVersionName());
     assertEquals("", SdkVersion.UNKNOWN.getVersionName());
     assertEquals("Unknown new SDK has been added, update this test",
-        10, SdkVersion.values().length);
+        13, SdkVersion.values().length);
   }
 
   public void testGetPackagePrefix() {
@@ -58,9 +61,12 @@ public class SdkVersionTest extends TestCase {
     assertEquals("v233.", SdkVersion.GINGERBREAD_NFC.getPackagePrefix());
     assertEquals("v30.", SdkVersion.HONEYCOMB_MR1.getPackagePrefix());
     assertEquals("v31.", SdkVersion.HONEYCOMB_MR2.getPackagePrefix());
+    assertEquals("v32.", SdkVersion.HONEYCOMB_MR3.getPackagePrefix());
+    assertEquals("v40.", SdkVersion.ICE_CREAM_SANDWICH_MR1.getPackagePrefix());
+    assertEquals("v403.", SdkVersion.ICE_CREAM_SANDWICH_MR2.getPackagePrefix());
     assertEquals("", SdkVersion.UNKNOWN.getPackagePrefix());
     assertEquals("Unknown new SDK has been added, update this test",
-        10, SdkVersion.values().length);
+        13, SdkVersion.values().length);
   }
 
   public void testGetCurrentVersion() {
@@ -78,9 +84,12 @@ public class SdkVersionTest extends TestCase {
     assertEquals(SdkVersion.GINGERBREAD_NFC, SdkVersion.getVersionFor(10));
     assertEquals(SdkVersion.HONEYCOMB_MR1, SdkVersion.getVersionFor(11));
     assertEquals(SdkVersion.HONEYCOMB_MR2, SdkVersion.getVersionFor(12));
+    assertEquals(SdkVersion.HONEYCOMB_MR3, SdkVersion.getVersionFor(13));
+    assertEquals(SdkVersion.ICE_CREAM_SANDWICH_MR1, SdkVersion.getVersionFor(14));
+    assertEquals(SdkVersion.ICE_CREAM_SANDWICH_MR2, SdkVersion.getVersionFor(15));
     assertEquals(SdkVersion.UNKNOWN, SdkVersion.getVersionFor(-1));
     // All likely future version numbers...  Modify this when a new version is added
-    for (int i = 13; i < 50; ++i) {
+    for (int i = 16; i < 50; ++i) {
       assertEquals("Unknown new SDK has been added, update this test",
           SdkVersion.UNKNOWN, SdkVersion.getVersionFor(i));
     }
