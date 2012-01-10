@@ -89,6 +89,10 @@ public enum SdkVersion {
     return prefix;
   }
 
+  public int getApiLevel() {
+    return apiLevel;
+  }
+
   /**
    * Returns the current SDK version, or UNKNOWN if the version cannot be determined (for instance
    * if this method is invoked from within a J2SE environment).

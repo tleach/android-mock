@@ -9,18 +9,6 @@
   <!-- Android Framework Mockgen Properties -->
   <property name="android-lib-folder" value="${lib-folder}/android"/>
   <property name="framework.mock-staging" value="staging/android_framework_mocks"/>
-  <property name="android-15-jar" value="android_v15.jar"/>
-  <property name="android-16-jar" value="android_v16.jar"/>
-  <property name="android-201-jar" value="android_v201.jar"/>
-  <property name="android-21-jar" value="android_v21.jar"/>
-  <property name="android-22-jar" value="android_v22.jar"/>
-  <property name="android-231-jar" value="android_v231.jar"/>
-  <property name="android-233-jar" value="android_v233.jar"/>
-  <property name="android-30-jar" value="android_v30.jar"/>
-  <property name="android-31-jar" value="android_v31.jar"/>
-  <property name="android-32-jar" value="android_v32.jar"/>
-  <property name="android-40-jar" value="android_v40.jar"/>
-  <property name="android-403-jar" value="android_v403.jar"/>
     
 
   <!-- property name="framework.mock-bin" value=see build.properties -->
@@ -46,34 +34,37 @@
       depends="-frameworkgen.clean-staging,-frameworkgen.dirs,mockgen.build-deploy"
       description="Builds the mock support files for mocking Android Framework classes.">
 
-    <generate-framework-mocks api-jar-file="${android-15-jar}" api-level="3"/>
-    <generate-framework-mocks api-jar-file="${android-16-jar}" api-level="4"/>
-    <generate-framework-mocks api-jar-file="${android-201-jar}" api-level="6"/>
-    <generate-framework-mocks api-jar-file="${android-21-jar}" api-level="7"/>
-    <generate-framework-mocks api-jar-file="${android-22-jar}" api-level="8"/>
-    <generate-framework-mocks api-jar-file="${android-231-jar}" api-level="9"/>
-    <generate-framework-mocks api-jar-file="${android-233-jar}" api-level="10"/>
-    <generate-framework-mocks api-jar-file="${android-30-jar}" api-level="11"/>
-    <generate-framework-mocks api-jar-file="${android-31-jar}" api-level="12"/>
-    <generate-framework-mocks api-jar-file="${android-32-jar}" api-level="13"/>
-    <generate-framework-mocks api-jar-file="${android-40-jar}" api-level="14"/>
-    <generate-framework-mocks api-jar-file="${android-403-jar}" api-level="15"/>
+    <fail unless="android-sdk-folder">Cannot build framework mocks without an Android SDK. Please create a ANDROID_SDK environment variable pointing to the location of the Android SDK on your machine.</fail>
+
+    <echo>Using ${android-sdk-folder} to build framework mocks...</echo>
+
+    <generate-framework-mocks api-level="3"/>
+    <generate-framework-mocks api-level="4"/>
+    <generate-framework-mocks api-level="7"/>
+    <generate-framework-mocks api-level="8"/>
+    <generate-framework-mocks api-level="9"/>
+    <generate-framework-mocks api-level="10"/>
+    <generate-framework-mocks api-level="11"/>
+    <generate-framework-mocks api-level="12"/>
+    <generate-framework-mocks api-level="13"/>
+    <generate-framework-mocks api-level="14"/>
+    <generate-framework-mocks api-level="15"/>
     <jar destfile="${framework.mock-bin}/${framework.mock-jar}"
          basedir="${framework.mock-staging}" includes="**/*.class" index="true"/>
   </target>
 
   <!-- Macros -->
   <macrodef name="generate-framework-mocks">
-    <attribute name="api-jar-file"/>
     <attribute name="api-level"/>
     <sequential>
       <java classname="com.google.android.testing.mocking.AndroidFrameworkMockGenerator" fork="true">
         <classpath>
           <pathelement location="${mockgen.bin}/${mockgen.deploy-jar}"/>
-          <pathelement location="${android-lib-folder}/@{api-jar-file}"/>
+          <pathelement location="${android-sdk-folder}/platforms/android-@{api-level}/android.jar"/>
         </classpath>
         <arg value="${framework.mock-staging}"/>
         <arg value="@{api-level}"/>
+        <arg value="${android-sdk-folder}" />
       </java>
     </sequential>
   </macrodef>

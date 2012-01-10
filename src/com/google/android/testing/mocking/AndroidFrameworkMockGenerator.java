@@ -42,9 +42,7 @@ import java.util.jar.JarFile;
  * @author swoodward@google.com (Stephen Woodward)
  */
 public class AndroidFrameworkMockGenerator {
-  private static final String LIB_FOLDER = "lib";
-  private static final String JAR_NAME = "android_";
-
+  
   /**
    * Returns a set of mock support classes for the specified Class for all versions of
    * the Android SDK. If the requested class is not part of the Android framework, then the class
@@ -126,19 +124,19 @@ public class AndroidFrameworkMockGenerator {
   /**
    * @return the Android framework jar file for the specified {@link SdkVersion}.
    */
-  static String getJarFileNameForVersion(SdkVersion version) {
+  static String getJarFileNameForVersion(SdkVersion version, String sdkFolder) {
     return new StringBuilder()
-        .append(LIB_FOLDER)
+        .append(sdkFolder)
         .append(File.separator)
-        .append("android")
+        .append("platforms")
         .append(File.separator)
-        .append(JAR_NAME)
-        .append(version.getVersionName())
-        .append(".jar").toString();
+        .append("android-")
+        .append(version.getApiLevel())
+        .append(File.separator)
+        .append("android.jar").toString();
   }
 
-  private static Set<GeneratedClassFile> generateMocks(
-      SdkVersion version, JarFile jar)
+  private static Set<GeneratedClassFile> generateMocks(SdkVersion version, JarFile jar)
       throws ClassNotFoundException, IOException, CannotCompileException {
     AndroidFrameworkMockGenerator mockGenerator = new AndroidFrameworkMockGenerator();
     List<Class<?>> classList = mockGenerator.getClassList(jar);
@@ -149,8 +147,8 @@ public class AndroidFrameworkMockGenerator {
     return classes;
   }
 
-  private static JarFile getJarFile(SdkVersion version) throws IOException {
-    File jarFile = new File(getJarFileNameForVersion(version)).getAbsoluteFile();
+  private static JarFile getJarFile(SdkVersion version, String sdkFolder) throws IOException {
+    File jarFile = new File(getJarFileNameForVersion(version, sdkFolder)).getAbsoluteFile();
     System.out.println("Using Jar File: " + jarFile.getAbsolutePath());
     return new JarFile(jarFile);
   }
@@ -159,9 +157,10 @@ public class AndroidFrameworkMockGenerator {
     try {
       String outputFolderName = args[0];
       SdkVersion version = SdkVersion.getVersionFor(Integer.parseInt(args[1]));
+      String sdkFolder = args[2];
       System.out.println("Generating files for " + version.getPackagePrefix());
 
-      JarFile jar = getJarFile(version);
+      JarFile jar = getJarFile(version, sdkFolder);
 
       Set<GeneratedClassFile> classes = generateMocks(version, jar);
       for (GeneratedClassFile clazz : classes) {

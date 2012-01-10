@@ -123,8 +123,8 @@ public class AndroidFrameworkMockGeneratorTest extends TestCase {
   public void testGetJarFileNameForVersion() {
     for (SdkVersion version : SdkVersion.getAllVersions()) {
       getMockGenerator();
-      assertEquals("lib/android/android_" + version.getVersionName() + ".jar",
-          AndroidFrameworkMockGenerator.getJarFileNameForVersion(version)
+      assertEquals("some_folder/platforms/android-" + version.getApiLevel() + "/android.jar",
+          AndroidFrameworkMockGenerator.getJarFileNameForVersion(version, "some_folder")
               .replace('\\', '/'));
     }
   }
