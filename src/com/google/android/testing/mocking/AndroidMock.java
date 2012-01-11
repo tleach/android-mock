@@ -19,6 +19,7 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.easymock.IExpectationSetters;
+import org.easymock.IMockBuilder;
 import org.easymock.LogicalOperator;
 
 import java.lang.reflect.Constructor;
@@ -239,6 +240,8 @@ public class AndroidMock {
     return (T) getSubclassFor(toMock, getInterfaceFor(toMock), mockedInterface, args);
   }
 
+  
+  
   /**
    * Returns the expectation setter for the last expected invocation in the current thread.
    * Expectation setters are used during the recording phase to specify what method calls
@@ -424,6 +427,23 @@ public class AndroidMock {
   public static <T> T anyObject() {
     return (T) EasyMock.anyObject();
   }
+  
+
+  /**
+   * Expects any Object argument. For details, see the EasyMock documentation.
+   * To work well with generics, this matcher can be used in three different
+   * ways. See {@link #anyObject()}.
+   * 
+   * @param <T>
+   *            type of the method argument to match
+   * @param clazz
+   *            the class of the argument to match
+   * @return <code>null</code>.
+   */
+  public static <T> T anyObject(final Class<T> clazz) {
+    return EasyMock.anyObject(clazz);  
+  }
+  
 
   /**
    * Expects a {@code Comparable} argument greater than or equal to the given value as a parameter
@@ -2127,6 +2147,24 @@ public class AndroidMock {
   public static <T> T isNull() {
     return (T) EasyMock.isNull();
   }
+  
+  
+  /**
+   * Expects null. To work well with generics, this matcher can be used in
+   * three different ways. See {@link #isNull()}.
+   * 
+   * @param <T>
+   *            type of the method argument to match
+   * @param clazz
+   *            the class of the argument to match
+   * @return <code>null</code>.
+   * 
+   * @see #isNull()
+   */
+  public static <T> T isNull(final Class<T> clazz) {
+    return EasyMock.isNull(clazz);
+  }
+  
 
   /**
    * Expects any {@code non-null} Object parameter.
@@ -2140,6 +2178,24 @@ public class AndroidMock {
   public static <T> T notNull() {
     return (T) EasyMock.notNull();
   }
+  
+  
+  /**
+   * Expects not null. To work well with generics, this matcher can be used in
+   * three different ways. See {@link #notNull()}.
+   * 
+   * @param <T>
+   *            type of the method argument to match
+   * @param clazz
+   *            the class of the argument to match
+   * @return <code>null</code>.
+   * 
+   * @see #notNull()
+   */
+  public static <T> T notNull(final Class<T> clazz) {
+    return notNull(clazz);
+  }
+  
 
   /**
    * Expects a {@code String} that contains a substring that matches the given regular
@@ -2450,6 +2506,17 @@ public class AndroidMock {
     return EasyMock.capture(captured);
   }
 
+  /**
+   * Expect any boolean but captures it for later use.
+   * 
+   * @param captured
+   *            Where the parameter is captured
+   * @return <code>false</code>
+   */
+  public static boolean captureBoolean(final Capture<Boolean> captured) {
+    return EasyMock.captureBoolean(captured);
+  }  
+  
   /**
    * Switches the given mock objects (more exactly: the controls of the mock
    * objects) to replay mode.
