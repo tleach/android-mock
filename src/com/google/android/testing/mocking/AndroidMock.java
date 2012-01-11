@@ -2631,11 +2631,7 @@ public class AndroidMock {
     Class<T> subclass;
     String className = null;
     try {
-      if (isAndroidClass(clazz)) {
-        className = FileUtils.getSubclassNameFor(clazz, SdkVersion.getCurrentVersion());
-      } else {
-        className = FileUtils.getSubclassNameFor(clazz, SdkVersion.UNKNOWN);
-      }
+      className = FileUtils.getSubclassNameFor(clazz);
       subclass = (Class<T>) Class.forName(className);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException("Could not find class for " + className
@@ -2657,7 +2653,6 @@ public class AndroidMock {
     } catch (InvocationTargetException e) {
       throw new ExceptionInInitializerError(e);
     }
-    Method[] methods = subclass.getMethods();
     Method setMethod;
     try {
       setMethod = subclass.getMethod("setDelegate___AndroidMock", delegateInterface);
@@ -2782,11 +2777,7 @@ public class AndroidMock {
   private static <T> Class<T> getInterfaceFor(Class<T> clazz) {
     try {
       String className;
-      if (isAndroidClass(clazz)) {
-        className = FileUtils.getInterfaceNameFor(clazz, SdkVersion.getCurrentVersion());
-      } else {
-        className = FileUtils.getInterfaceNameFor(clazz, SdkVersion.UNKNOWN);
-      }
+      className = FileUtils.getInterfaceNameFor(clazz);
       return (Class<T>) Class.forName(className);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException("Could not find mock for " + clazz.getName()

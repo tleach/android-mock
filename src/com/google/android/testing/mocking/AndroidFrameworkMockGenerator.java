@@ -71,17 +71,10 @@ public class AndroidFrameworkMockGenerator {
     return classList;
   }
 
-  private List<Class<?>> getPrebuiltClassesFor(Class<?> clazz) {
+  private List<Class<?>> getPrebuiltClassesFor(Class<?> clazz) throws ClassNotFoundException {
     List<Class<?>> classes = new ArrayList<Class<?>>();
-    SdkVersion[] versions = SdkVersion.getAllVersions();
-    for (SdkVersion sdkVersion : versions) {
-      try {
-        classes.add(Class.forName(FileUtils.getSubclassNameFor(clazz, sdkVersion)));
-        classes.add(Class.forName(FileUtils.getInterfaceNameFor(clazz, sdkVersion)));
-      } catch (ClassNotFoundException e) {
-        // Tolerate this as it may be that not all SDK versions contain the class
-      }
-    }
+    classes.add(Class.forName(FileUtils.getSubclassNameFor(clazz)));
+    classes.add(Class.forName(FileUtils.getInterfaceNameFor(clazz)));
     return classes;
   }
 
@@ -89,11 +82,11 @@ public class AndroidFrameworkMockGenerator {
    * @return a List of {@link GeneratedClassFile} objects representing the mocks for the specified
    *         class for a single version of the Android SDK.
    */
-  public List<GeneratedClassFile> createMocksForClass(Class<?> clazz, SdkVersion version)
+  public List<GeneratedClassFile> createMocksForClass(Class<?> clazz)
       throws ClassNotFoundException, IOException, CannotCompileException {
     AndroidMockGenerator mockGenerator = new AndroidMockGenerator();
     List<GeneratedClassFile> mocks = new ArrayList<GeneratedClassFile>();
-    mocks.addAll(mockGenerator.createMocksForClass(clazz, version));
+    mocks.addAll(mockGenerator.createMocksForClass(clazz));
     return mocks;
   }
 
@@ -124,31 +117,31 @@ public class AndroidFrameworkMockGenerator {
   /**
    * @return the Android framework jar file for the specified {@link SdkVersion}.
    */
-  static String getJarFileNameForVersion(SdkVersion version, String sdkFolder) {
+  static String getJarFileNameForVersion(int apiLevel, String sdkFolder) {
     return new StringBuilder()
         .append(sdkFolder)
         .append(File.separator)
         .append("platforms")
         .append(File.separator)
         .append("android-")
-        .append(version.getApiLevel())
+        .append(apiLevel)
         .append(File.separator)
         .append("android.jar").toString();
   }
 
-  private static Set<GeneratedClassFile> generateMocks(SdkVersion version, JarFile jar)
+  private static Set<GeneratedClassFile> generateMocks(JarFile jar)
       throws ClassNotFoundException, IOException, CannotCompileException {
     AndroidFrameworkMockGenerator mockGenerator = new AndroidFrameworkMockGenerator();
     List<Class<?>> classList = mockGenerator.getClassList(jar);
     Set<GeneratedClassFile> classes = new HashSet<GeneratedClassFile>();
     for (Class<?> clazz : classList) {
-      classes.addAll(mockGenerator.createMocksForClass(clazz, version));
+      classes.addAll(mockGenerator.createMocksForClass(clazz));
     }
     return classes;
   }
 
-  private static JarFile getJarFile(SdkVersion version, String sdkFolder) throws IOException {
-    File jarFile = new File(getJarFileNameForVersion(version, sdkFolder)).getAbsoluteFile();
+  private static JarFile getJarFile(int apiLevel, String sdkFolder) throws IOException {
+    File jarFile = new File(getJarFileNameForVersion(apiLevel, sdkFolder)).getAbsoluteFile();
     System.out.println("Using Jar File: " + jarFile.getAbsolutePath());
     return new JarFile(jarFile);
   }
@@ -156,13 +149,13 @@ public class AndroidFrameworkMockGenerator {
   public static void main(String[] args) {
     try {
       String outputFolderName = args[0];
-      SdkVersion version = SdkVersion.getVersionFor(Integer.parseInt(args[1]));
+      int apiLevel = Integer.parseInt(args[1]);
       String sdkFolder = args[2];
-      System.out.println("Generating files for " + version.getPackagePrefix());
+      System.out.println("Generating files for api level " + apiLevel);
 
-      JarFile jar = getJarFile(version, sdkFolder);
+      JarFile jar = getJarFile(apiLevel, sdkFolder);
 
-      Set<GeneratedClassFile> classes = generateMocks(version, jar);
+      Set<GeneratedClassFile> classes = generateMocks(jar);
       for (GeneratedClassFile clazz : classes) {
         FileUtils.saveClassToFolder(clazz, outputFolderName);
       }

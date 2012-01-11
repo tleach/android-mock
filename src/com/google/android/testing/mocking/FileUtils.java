@@ -30,16 +30,16 @@ public class FileUtils {
    * @param sdkVersion
    * @return the appropriate interface name for the interface mock support file.
    */
-  static String getInterfaceNameFor(Class<?> clazz, SdkVersion sdkVersion) {
-    return sdkVersion.getPackagePrefix() + "genmocks." + clazz.getName() + "DelegateInterface";
+  static String getInterfaceNameFor(Class<?> clazz) {
+    return "genmocks." + clazz.getName() + "DelegateInterface";
   }
   /**
    * @param clazz
    * @param sdkVersion
    * @return the appropriate subclass name for the subclass mock support file.
    */
-  static String getSubclassNameFor(Class<?> clazz, SdkVersion sdkVersion) {
-    return sdkVersion.getPackagePrefix() + "genmocks." + clazz.getName() + "DelegateSubclass";
+  static String getSubclassNameFor(Class<?> clazz) {
+    return "genmocks." + clazz.getName() + "DelegateSubclass";
   }
 
   /**

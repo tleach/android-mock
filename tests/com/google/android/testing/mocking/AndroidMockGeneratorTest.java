@@ -261,13 +261,13 @@ public class AndroidMockGeneratorTest extends TestCase {
   public void testGetInterfaceName() {
     AndroidMockGenerator r = getAndroidMockGenerator();
     assertEquals("genmocks.java.lang.ObjectDelegateInterface",
-        FileUtils.getInterfaceNameFor(Object.class, SdkVersion.UNKNOWN));
+        FileUtils.getInterfaceNameFor(Object.class));
   }
 
   public void testGetSubclassName() {
     AndroidMockGenerator r = getAndroidMockGenerator();
     assertEquals("genmocks.java.lang.ObjectDelegateSubclass",
-        FileUtils.getSubclassNameFor(Object.class, SdkVersion.UNKNOWN));
+        FileUtils.getSubclassNameFor(Object.class));
   }
 
   public void testGetDelegateMethodSource() throws SecurityException, NoSuchMethodException {
@@ -418,9 +418,9 @@ public class AndroidMockGeneratorTest extends TestCase {
 
   public void testGenerateEmptySubclass() throws ClassNotFoundException, NotFoundException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    CtClass generatedInterface = mockGenerator.generateInterface(String.class, SdkVersion.UNKNOWN);
+    CtClass generatedInterface = mockGenerator.generateInterface(String.class);
     CtClass generatedClass = getAndroidMockGenerator().generateSkeletalClass(
-        String.class, generatedInterface, SdkVersion.UNKNOWN);
+        String.class, generatedInterface);
 
     assertEquals("genmocks.java.lang", generatedClass.getPackageName());
     assertEquals("StringDelegateSubclass", generatedClass.getSimpleName());
@@ -430,9 +430,9 @@ public class AndroidMockGeneratorTest extends TestCase {
 
   public void testAddMethods() throws ClassNotFoundException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    CtClass generatedInterface = mockGenerator.generateInterface(Number.class, SdkVersion.UNKNOWN);
+    CtClass generatedInterface = mockGenerator.generateInterface(Number.class);
     CtClass generatedClass =
-        mockGenerator.generateSkeletalClass(Number.class, generatedInterface, SdkVersion.UNKNOWN);
+        mockGenerator.generateSkeletalClass(Number.class, generatedInterface);
 
     mockGenerator.addMethods(Number.class, generatedClass);
 
@@ -444,9 +444,9 @@ public class AndroidMockGeneratorTest extends TestCase {
 
   public void testAddMethodsObjectClass() throws ClassNotFoundException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    CtClass generatedInterface = mockGenerator.generateInterface(Object.class, SdkVersion.UNKNOWN);
+    CtClass generatedInterface = mockGenerator.generateInterface(Object.class);
     CtClass generatedClass =
-        mockGenerator.generateSkeletalClass(Object.class, generatedInterface, SdkVersion.UNKNOWN);
+        mockGenerator.generateSkeletalClass(Object.class, generatedInterface);
 
     mockGenerator.addMethods(Object.class, generatedClass);
 
@@ -459,9 +459,9 @@ public class AndroidMockGeneratorTest extends TestCase {
   public void testAddMethodsUsesSuperclass() throws ClassNotFoundException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
     CtClass generatedInterface = mockGenerator.generateInterface(
-        BigInteger.class, SdkVersion.UNKNOWN);
+        BigInteger.class);
     CtClass generatedClass = mockGenerator.generateSkeletalClass(
-        BigInteger.class, generatedInterface, SdkVersion.UNKNOWN);
+        BigInteger.class, generatedInterface);
 
     mockGenerator.addMethods(BigInteger.class, generatedClass);
 
@@ -474,9 +474,9 @@ public class AndroidMockGeneratorTest extends TestCase {
   public void testGetAllMethods() throws ClassNotFoundException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
     CtClass generatedInterface = mockGenerator.generateInterface(
-        BigInteger.class, SdkVersion.UNKNOWN);
+        BigInteger.class);
     CtClass generatedClass = mockGenerator.generateSkeletalClass(
-        BigInteger.class, generatedInterface, SdkVersion.UNKNOWN);
+        BigInteger.class, generatedInterface);
 
     Method[] methods = mockGenerator.getAllMethods(BigInteger.class);
 
@@ -488,7 +488,7 @@ public class AndroidMockGeneratorTest extends TestCase {
 
   public void testGenerateInterface() {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    CtClass generatedInterface = mockGenerator.generateInterface(Number.class, SdkVersion.UNKNOWN);
+    CtClass generatedInterface = mockGenerator.generateInterface(Number.class);
 
     List<String> expectedNames = getExpectedNamesForNumberClass();
     List<String> actualNames = getMethodNames(generatedInterface.getDeclaredMethods());
@@ -510,10 +510,10 @@ public class AndroidMockGeneratorTest extends TestCase {
 
   public void testGenerateSubclass() throws ClassNotFoundException {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    CtClass generatedInterface = mockGenerator.generateInterface(Number.class, SdkVersion.UNKNOWN);
+    CtClass generatedInterface = mockGenerator.generateInterface(Number.class);
 
     CtClass generatedClass =
-        mockGenerator.generateSubClass(Number.class, generatedInterface, SdkVersion.UNKNOWN);
+        mockGenerator.generateSubClass(Number.class, generatedInterface);
 
     List<String> expectedNames = getExpectedNamesForNumberClass(true);
     List<String> actualNames = getMethodNames(generatedClass.getDeclaredMethods());
@@ -540,7 +540,7 @@ public class AndroidMockGeneratorTest extends TestCase {
 
   public void testGetSetDelegateMethodSource() {
     AndroidMockGenerator mockGenerator = getAndroidMockGenerator();
-    CtClass generatedInterface = mockGenerator.generateInterface(Object.class, SdkVersion.UNKNOWN);
+    CtClass generatedInterface = mockGenerator.generateInterface(Object.class);
     String expectedSource =
         "public void setDelegate___AndroidMock(genmocks.java.lang.ObjectDelegateInterface obj) {"
             + " this.delegateMockObject = obj;}";

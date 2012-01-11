@@ -42,15 +42,12 @@
     <generate-framework-mocks api-level="4"/>
     <generate-framework-mocks api-level="7"/>
     <generate-framework-mocks api-level="8"/>
-    <generate-framework-mocks api-level="9"/>
     <generate-framework-mocks api-level="10"/>
     <generate-framework-mocks api-level="11"/>
     <generate-framework-mocks api-level="12"/>
     <generate-framework-mocks api-level="13"/>
     <generate-framework-mocks api-level="14"/>
     <generate-framework-mocks api-level="15"/>
-    <jar destfile="${framework.mock-bin}/${framework.mock-jar}"
-         basedir="${framework.mock-staging}" includes="**/*.class" index="true"/>
   </target>
 
   <!-- Macros -->
@@ -66,6 +63,9 @@
         <arg value="@{api-level}"/>
         <arg value="${android-sdk-folder}" />
       </java>
+      <jar destfile="${framework.mock-bin}/android_@{api-level}_framework_mocks.jar"
+           basedir="${framework.mock-staging}" includes="**/*.class" index="true"/>
+      <delete dir="${framework.mock-staging}"/>
     </sequential>
   </macrodef>
 

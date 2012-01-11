@@ -27,7 +27,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 
@@ -87,16 +90,14 @@ public class AndroidFrameworkMockGeneratorTest extends TestCase {
   public void testCreateMockForClass() throws ClassNotFoundException, IOException,
       CannotCompileException {
     AndroidFrameworkMockGenerator mockGenerator = getMockGenerator();
-    for (SdkVersion version : SdkVersion.getAllVersions()) {
-      List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(Object.class, version);
-  
-      List<String> expectedNames = new ArrayList<String>();
-      expectedNames.addAll(Arrays.asList(new String[] {
-          version.getPackagePrefix() + "genmocks.java.lang.ObjectDelegateSubclass",
-          version.getPackagePrefix() + "genmocks.java.lang.ObjectDelegateInterface"}));
-      List<String> actualNames = getClassNames(classes);
-      assertUnorderedContentsSame(expectedNames, actualNames);
-    }
+    List<GeneratedClassFile> classes = mockGenerator.createMocksForClass(Object.class);
+
+    List<String> expectedNames = new ArrayList<String>();
+    expectedNames.addAll(Arrays.asList(new String[] {
+        "genmocks.java.lang.ObjectDelegateSubclass",
+        "genmocks.java.lang.ObjectDelegateInterface"}));
+    List<String> actualNames = getClassNames(classes);
+    assertUnorderedContentsSame(expectedNames, actualNames);
   }
 
   public void testGetClassList() throws ClassNotFoundException {
@@ -121,53 +122,27 @@ public class AndroidFrameworkMockGeneratorTest extends TestCase {
   }
 
   public void testGetJarFileNameForVersion() {
-    for (SdkVersion version : SdkVersion.getAllVersions()) {
-      getMockGenerator();
-      assertEquals("some_folder/platforms/android-" + version.getApiLevel() + "/android.jar",
-          AndroidFrameworkMockGenerator.getJarFileNameForVersion(version, "some_folder")
-              .replace('\\', '/'));
-    }
+    getMockGenerator();
+    assertEquals("some_folder/platforms/android-10/android.jar",
+        AndroidFrameworkMockGenerator.getJarFileNameForVersion(10, "some_folder")
+            .replace('\\', '/'));
   }
 
   public void testGetMocksForClass() throws ClassNotFoundException, IOException,
       CannotCompileException, NotFoundException {
     List<CtClass> createdClasses = new ArrayList<CtClass>();
     AndroidFrameworkMockGenerator mockGenerator = getMockGenerator();
-    for (SdkVersion version : SdkVersion.getAllVersions()) {
-      List<GeneratedClassFile> createdMocks = mockGenerator.createMocksForClass(
-          Vector.class, version);
-      for (GeneratedClassFile mock : createdMocks) {
-        CtClass ctClass = ClassPool.getDefault().get(mock.getClassName());
-        createdClasses.add(ctClass);
-        ctClass.toClass();
-      }
+    List<GeneratedClassFile> createdMocks = mockGenerator.createMocksForClass(
+        Hashtable.class);
+    for (GeneratedClassFile mock : createdMocks) {
+      CtClass ctClass = ClassPool.getDefault().get(mock.getClassName());
+      createdClasses.add(ctClass);
+      ctClass.toClass();
     }
-    List<GeneratedClassFile> mocks = mockGenerator.getMocksForClass(Vector.class);
+    List<GeneratedClassFile> mocks = mockGenerator.getMocksForClass(Hashtable.class);
     String[] expectedClassNames = new String[] {
-        "v15.genmocks.java.util.VectorDelegateSubclass",
-        "v15.genmocks.java.util.VectorDelegateInterface",
-        "v16.genmocks.java.util.VectorDelegateSubclass",
-        "v16.genmocks.java.util.VectorDelegateInterface",
-        "v201.genmocks.java.util.VectorDelegateSubclass",
-        "v201.genmocks.java.util.VectorDelegateInterface",
-        "v21.genmocks.java.util.VectorDelegateSubclass",
-        "v21.genmocks.java.util.VectorDelegateInterface",
-        "v22.genmocks.java.util.VectorDelegateSubclass",
-        "v22.genmocks.java.util.VectorDelegateInterface",
-        "v231.genmocks.java.util.VectorDelegateSubclass",
-        "v231.genmocks.java.util.VectorDelegateInterface",
-        "v233.genmocks.java.util.VectorDelegateSubclass",
-        "v233.genmocks.java.util.VectorDelegateInterface",
-        "v30.genmocks.java.util.VectorDelegateSubclass",
-        "v30.genmocks.java.util.VectorDelegateInterface",
-        "v31.genmocks.java.util.VectorDelegateSubclass",
-        "v31.genmocks.java.util.VectorDelegateInterface",
-        "v32.genmocks.java.util.VectorDelegateSubclass",
-        "v32.genmocks.java.util.VectorDelegateInterface",
-        "v40.genmocks.java.util.VectorDelegateSubclass",
-        "v40.genmocks.java.util.VectorDelegateInterface",
-        "v403.genmocks.java.util.VectorDelegateSubclass",
-        "v403.genmocks.java.util.VectorDelegateInterface"  
+        "genmocks.java.util.HashtableDelegateSubclass",
+        "genmocks.java.util.HashtableDelegateInterface",
     };
     assertEquals(expectedClassNames.length, mocks.size());
     for (int i = 0; i < mocks.size(); ++i) {

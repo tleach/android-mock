@@ -41,33 +41,13 @@ public class FileUtilsTest extends TestCase {
   }
 
   public void testGetInterfaceNameFor() {
-    assertEquals("v15.genmocks.java.util.VectorDelegateInterface",
-        FileUtils.getInterfaceNameFor(Vector.class, SdkVersion.CUPCAKE));
-    assertEquals("v16.genmocks.java.util.VectorDelegateInterface",
-        FileUtils.getInterfaceNameFor(Vector.class, SdkVersion.DONUT));
-    assertEquals("v201.genmocks.java.util.VectorDelegateInterface",
-        FileUtils.getInterfaceNameFor(Vector.class, SdkVersion.ECLAIR_0_1));
-    assertEquals("v21.genmocks.java.util.VectorDelegateInterface",
-        FileUtils.getInterfaceNameFor(Vector.class, SdkVersion.ECLAIR_MR1));
-    assertEquals("v22.genmocks.java.util.VectorDelegateInterface",
-        FileUtils.getInterfaceNameFor(Vector.class, SdkVersion.FROYO));
     assertEquals("genmocks.java.util.VectorDelegateInterface",
-        FileUtils.getInterfaceNameFor(Vector.class, SdkVersion.UNKNOWN));
+        FileUtils.getInterfaceNameFor(Vector.class));
   }
 
   public void testGetSubclassNameFor() {
-    assertEquals("v15.genmocks.java.util.VectorDelegateSubclass",
-        FileUtils.getSubclassNameFor(Vector.class, SdkVersion.CUPCAKE));
-    assertEquals("v16.genmocks.java.util.VectorDelegateSubclass",
-        FileUtils.getSubclassNameFor(Vector.class, SdkVersion.DONUT));
-    assertEquals("v201.genmocks.java.util.VectorDelegateSubclass",
-        FileUtils.getSubclassNameFor(Vector.class, SdkVersion.ECLAIR_0_1));
-    assertEquals("v21.genmocks.java.util.VectorDelegateSubclass",
-        FileUtils.getSubclassNameFor(Vector.class, SdkVersion.ECLAIR_MR1));
-    assertEquals("v22.genmocks.java.util.VectorDelegateSubclass",
-        FileUtils.getSubclassNameFor(Vector.class, SdkVersion.FROYO));
     assertEquals("genmocks.java.util.VectorDelegateSubclass",
-        FileUtils.getSubclassNameFor(Vector.class, SdkVersion.UNKNOWN));
+        FileUtils.getSubclassNameFor(Vector.class));
   }
 
   private String convertPathToNative(String path) {
